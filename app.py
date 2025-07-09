@@ -3,7 +3,7 @@
 
 
 
-from tkinter import _test
+#from tkinter import _test
 from sklearn.metrics import accuracy_score
 
 import streamlit as st
