@@ -11,8 +11,9 @@ import joblib
 import string
 
 # Load model and vectorizer
-model = joblib.load('model/fake_news_model.pkl')
-vectorizer = joblib.load('model/tfidf_vectorizer.pkl')
+model = joblib.load('fake_news_model.pkl')
+vectorizer = joblib.load('tfidf_vectorizer.pkl')
+
 
 # Streamlit page settings
 st.set_page_config(page_title="Fake News Detector", layout="centered")
