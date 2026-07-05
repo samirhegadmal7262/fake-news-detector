@@ -150,14 +150,23 @@ def clean_text(text: str) -> str:
 
 def extract_text_from_image(image: Image.Image) -> str:
     # Validate Tesseract availability before running OCR.
+    # Important: pytesseract may have been configured with a Windows-only path that
+    # doesn't exist in the current runtime. We validate availability explicitly.
     try:
+        configured = getattr(pytesseract.pytesseract, "tesseract_cmd", "")
+        if isinstance(configured, str) and configured.strip():
+            # Only validate existence when it looks like a filesystem path.
+            if ("\\" in configured or "/" in configured) and not os.path.exists(configured):
+                raise RuntimeError(f"Configured Tesseract path does not exist: {configured}")
+
         _ = pytesseract.get_tesseract_version()
     except Exception as e:
         raise RuntimeError(
             "Tesseract OCR is not available. "
-            "Install Tesseract and ensure it is on PATH, or set the correct Tesseract path in the sidebar. "
+            "Install Tesseract and ensure it is on PATH, or set a valid Tesseract path in the sidebar. "
             f"Details: {type(e).__name__}: {e}"
         )
+
 
     img = np.array(image)
 
@@ -752,7 +761,12 @@ with img_tab:
             try:
                 # OCR pipeline
                 ocr_img = enhance_for_ocr(img) if enhance else img
-                extracted = extract_text_from_image(ocr_img)
+                try:
+                    extracted = extract_text_from_image(ocr_img)
+                except Exception as e:
+                    st.error(str(e))
+                    return
+
                 extracted_clean = (extracted or "").strip()
 
                 if not extracted_clean or len(extracted_clean) < 10:
